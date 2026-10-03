@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>GameZone — Play Free Online Games</title>
+  <meta name="description" content="GameZone - Discover and play browser games online.">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #08090d;
+      --surface: #11131a;
+      --surface-2: #181b24;
+      --border: #292d38;
+      --text: #ffffff;
+      --muted: #9298a6;
+      --accent: #705cff;
+      --accent-2: #8b7cff;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8, 9, 13, 0.94);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .navbar {
+      max-width: 1450px;
+      margin: auto;
+      min-height: 72px;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 650px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 13px 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      background: var(--surface);
+      color: white;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .hero {
+      max-width: 1450px;
+      margin: 30px auto 20px;
+      padding: 0 22px;
+    }
+
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+      padding: 60px 48px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background:
+        radial-gradient(
+          circle at 85% 15%,
+          rgba(112, 92, 255, 0.45),
+          transparent 35%
+        ),
+        linear-gradient(135deg, #151821, #0d0f15);
+    }
+
+    .hero-card h1 {
+      max-width: 700px;
+      font-size: clamp(36px, 6vw, 68px);
+      line-height: 1;
+      margin-bottom: 18px;
+    }
+
+    .hero-card p {
+      max-width: 650px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .categories {
+      max-width: 1450px;
+      margin: 25px auto;
+      padding: 0 22px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .categories::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category {
+      flex: 0 0 auto;
+      padding: 10px 17px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .category:hover,
+    .category.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    main {
+      max-width: 1450px;
+      margin: auto;
+      padding: 0 22px 70px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 32px 0 18px;
+    }
+
+    .section-header h2 {
+      font-size: 27px;
+    }
+
+    .game-count {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .games {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 18px;
+    }
+
+    .game-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      border-color: #4b5262;
+    }
+
+    .game-image {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      display: block;
+      object-fit: cover;
+      background: var(--surface-2);
+    }
+
+    .game-info {
+      padding: 13px;
+    }
+
+    .game-title {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .game-category {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      padding: 70px 20px;
+      text-align: center;
+      color: var(--muted);
+      display: none;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 30px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    /* Game player */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.92);
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .player {
+      position: relative;
+      width: min(1200px, 100%);
+      height: min(760px, 92vh);
+      overflow: hidden;
+      border-radius: 16px;
+      background: #000;
+      border: 1px solid #333;
+    }
+
+    .player iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .close-player {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5;
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      background: #20232b;
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 700px) {
+      .navbar {
+        gap: 12px;
+        padding: 11px 14px;
+      }
+
+      .logo {
+        font-size: 19px;
+      }
+
+      .hero {
+        padding: 0 14px;
+      }
+
+      .hero-card {
+        padding: 38px 24px;
+      }
+
+      main {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .games {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <nav class="navbar">
+      <div class="logo">
+        Game<span>Zone</span>
+      </div>
+
+      <div class="search-box">
+        <input
+          id="search"
+          type="search"
+          placeholder="Search games..."
+          autocomplete="off"
+        >
+      </div>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-card">
+      <h1>Play. Discover. Repeat.</h1>
+
+      <p>
+        Discover browser games across action, arcade, puzzle,
+        racing, sports, adventure and more.
+      </p>
+    </div>
+  </section>
+
+  <div class="categories">
+    <button class="category active" data-category="all">
+      All Games
+    </button>
+
+    <button class="category" data-category="action">
+      Action
+    </button>
+
+    <button class="category" data-category="arcade">
+      Arcade
+    </button>
+
+    <button class="category" data-category="puzzle">
+      Puzzle
+    </button>
+
+    <button class="category" data-category="racing">
+      Racing
+    </button>
+
+    <button class="category" data-category="sports">
+      Sports
+    </button>
+
+    <button class="category" data-category="adventure">
+      Adventure
+    </button>
+
+    <button class="category" data-category="strategy">
+      Strategy
+    </button>
+  </div>
+
+  <main>
+
+    <div class="section-header">
+      <h2>Featured Games</h2>
+      <span id="gameCount" class="game-count">
+        0 games
+      </span>
+    </div>
+
+    <div id="games" class="games"></div>
+
+    <div id="empty" class="empty">
+      No games found.
+    </div>
+
+  </main>
+
+  <div id="modal" class="modal">
+
+    <div class="player">
+
+      <button
+        id="closePlayer"
+        class="close-player"
+        aria-label="Close game">
+        ×
+      </button>
+
+      <iframe
+        id="gameFrame"
+        allow="fullscreen; autoplay"
+        allowfullscreen>
+      </iframe>
+
+    </div>
+
+  </div>
+
+  <footer>
+    GameZone © 2026
+  </footer>
+
+  <script>
+
+    /*
+      Temporary demo catalog.
+
+      Later this will be replaced with the
+      authorized GamePix integration.
+    */
+
+    const games = [
+      {
+        title: "Game Preview 1",
+        category: "Arcade",
+        image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
+        url: ""
+      },
+      {
+        title: "Game Preview 2",
+        category: "Racing",
+        image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80",
+        url: ""
+      },
+      {
+        title: "Game Preview 3",
+        category: "Action",
+        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+        url: ""
+      },
+      {
+        title: "Game Preview 4",
+        category: "Sports",
+        image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80",
+        url: ""
+      },
+      {
+        title: "Game Preview 5",
+        category: "Puzzle",
+        image: "https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&w=800&q=80",
+        url: ""
+      },
+      {
+        title: "Game Preview 6",
+        category: "Adventure",
+        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80",
+        url: ""
+      }
+    ];
+
+    const state = {
+      search: "",
+      category: "all"
+    };
+
+    const gamesContainer =
+      document.getElementById("games");
+
+    const empty =
+      document.getElementById("empty");
+
+    const count =
+      document.getElementById("gameCount");
+
+    const search =
+      document.getElementById("search");
+
+    const modal =
+      document.getElementById("modal");
+
+    const frame =
+      document.getElementById("gameFrame");
+
+    function renderGames() {
+
+      const query =
+        state.search.toLowerCase().trim();
+
+      const filtered = games.filter(game => {
+
+        const title =
+          game.title.toLowerCase();
+
+        const category =
+          game.category.toLowerCase();
+
+        const categoryMatch =
+          state.category === "all" ||
+          category.includes(state.category);
+
+        const searchMatch =
+          !query ||
+          title.includes(query);
+
+        return categoryMatch && searchMatch;
+      });
+
+      gamesContainer.innerHTML = "";
+
+      count.textContent =
+        `${filtered.length} games`;
+
+      empty.style.display =
+        filtered.length ? "none" : "block";
+
+      filtered.forEach(game => {
+
+        const card =
+          document.createElement("article");
+
+        card.className = "game-card";
+
+        const image =
+          document.createElement("img");
+
+        image.className = "game-image";
+        image.src = game.image;
+        image.alt = game.title;
+        image.loading = "lazy";
+
+        const info =
+          document.createElement("div");
+
+        info.className = "game-info";
+
+        const title =
+          document.createElement("div");
+
+        title.className = "game-title";
+        title.textContent = game.title;
+
+        const category =
+          document.createElement("div");
+
+        category.className = "game-category";
+        category.textContent = game.category;
+
+        info.append(title, category);
+
+        card.append(image, info);
+
+        card.addEventListener("click", () => {
+
+          if (!game.url) {
+            alert(
+              "Game integration will be connected here."
+            );
+            return;
+          }
+
+          frame.src = game.url;
+
+          modal.classList.add("open");
+
+          document.body.style.overflow = "hidden";
+        });
+
+        gamesContainer.appendChild(card);
+      });
+    }
+
+    search.addEventListener("input", () => {
+
+      state.search = search.value;
+
+      renderGames();
+    });
+
+    document
+      .querySelectorAll(".category")
+      .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+          document
+            .querySelectorAll(".category")
+            .forEach(item =>
+              item.classList.remove("active")
+            );
+
+          button.classList.add("active");
+
+          state.category =
+            button.dataset.category;
+
+          renderGames();
+        });
+
+      });
+
+    document
+      .getElementById("closePlayer")
+      .addEventListener("click", closePlayer);
+
+    modal.addEventListener("click", event => {
+
+      if (event.target === modal) {
+        closePlayer();
+      }
+
+    });
+
+    document.addEventListener("keydown", event => {
+
+      if (event.key === "Escape") {
+        closePlayer();
+      }
+
+    });
+
+    function closePlayer() {
+
+      modal.classList.remove("open");
+
+      frame.src = "about:blank";
+
+      document.body.style.overflow = "";
+    }
+
+    renderGames();
+
+  </script>
+
+</body>
+</html>
